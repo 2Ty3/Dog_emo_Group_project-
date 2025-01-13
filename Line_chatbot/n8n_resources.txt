@@ -1,0 +1,2 @@
+cohere: https://dashboard.cohere.com/welcome/login
+groq: https://console.groq.com/login
