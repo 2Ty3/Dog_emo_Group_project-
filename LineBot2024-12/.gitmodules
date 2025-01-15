@@ -1,0 +1,3 @@
+[submodule "LineBot2024-12/LineBot2024-12/YOLOV11/ultralytics"]
+	path = LineBot2024-12/LineBot2024-12/YOLOV11/ultralytics
+	url = https://github.com/ultralytics/ultralytics
