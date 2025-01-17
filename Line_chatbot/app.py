@@ -21,6 +21,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 
+# 圖片辨識相關模組
+from ultralytics import YOLO
+import cv2
+
 # 日期時間相關模組
 from datetime import datetime
 import schedule
@@ -38,7 +42,7 @@ app.config['UPLOAD_FOLDER'] = 'static'
 app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png', 'gif'}
 
 config = configparser.ConfigParser()
-config.read("LineBot2024-12/LineBot2024-12/config.ini")
+config.read("config.ini")
 configuration = Configuration(access_token=config.get('line-bot', 'channel_access_token'))
 handler = WebhookHandler(config.get('line-bot', 'channel_secret'))
 my_line_id = config.get('line-bot', 'my_line_id')
@@ -50,7 +54,7 @@ HEADER = {
     'Authorization': F'Bearer {config.get("line-bot", "channel_access_token")}'
 }
 current_date = datetime.now().date()
-save_dir = 'LineBot2024-12/LineBot2024-12/YOLOV11/ultralytics/static'
+save_dir = 'static'
 ngrok_url =config.get('line-bot', 'end_point')
 
 
@@ -89,16 +93,15 @@ def index():
                 replyMessage(payload)
             elif events[0]["message"]["type"] == "image":
                 message_id = events[0]["message"]["id"]
-                payload["messages"] = [test(message_id)]
+                payload["messages"] = [distinguish(message_id)]
             replyMessage(payload)
 
     return payload
 
-from ultralytics import YOLO
-import cv2
+
 
 # 無情的辨識圖片開始
-def test(message_id):
+def distinguish(message_id):
     with ApiClient(configuration) as api_client:
         line_bot_blob_api = MessagingApiBlob(api_client)
         message_content = line_bot_blob_api.get_message_content(message_id=message_id)
@@ -117,7 +120,7 @@ def test(message_id):
     output_image_path = f'{save_dir}/{message_id}_result.jpg'
     results.save(output_image_path)  
     
-    # 需要一個網站提供這些圖片的 URL
+    # 需要透過一個網站提供URL
     image_url = f'{ngrok_url}/static/{message_id}_result.jpg'
     message = {
         "type" : "image",
@@ -162,9 +165,146 @@ def take_a_photo():
 
     return message 
 
-# 好像真的可以用聊天機器人取代
+# 擠牙膏，後面有更好的想法可以換掉這個
 def manual():
-    pass
+    message = {
+        "type": "template",
+        "altText": "this is a carousel template",
+        "template": {
+            "type": "carousel",
+            "columns": [
+                {
+                    "thumbnailImageUrl": f"{ngrok_url}/static/1研究不同狗的品種.jpg",
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": "研究不同狗的品種",
+                    "text": "step 1",
+                    "defaultAction": {
+                        "type": "message",
+                        "label": "Reply with message",
+                        "text": "Information about different dog breeds"
+                    },
+                    "actions": [
+                        {
+                            "type": "message",
+                            "label": "查看",
+                            "text": "研究不同的犬種，了解他們的性格、需求和特點，以選擇適合您的生活方式的犬種。"
+                        }
+                    ]
+                },
+                {
+                    "thumbnailImageUrl": f"{ngrok_url}/static/2犬舍.jpg",
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": "研究不同狗的品種",
+                    "text": "step 2",
+                    "defaultAction": {
+                        "type": "message",
+                        "label": "Reply with message",
+                        "text": "Information about dog breeds"
+                    },
+                    "actions": [
+                        {
+                            "type": "message",
+                            "label": "查看",
+                            "text": "尋找當地的動物收容所、犬舍或領養機構，以找到可供領養的狗。"
+                        }
+                    ]
+                },
+                {
+                    "thumbnailImageUrl": f"{ngrok_url}/static/3填寫領養表單.jpg",
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": "填寫領養表單",
+                    "text": "step 3",
+                    "defaultAction": {
+                        "type": "message",
+                        "label": "Reply with message",
+                        "text": "Information about adopting dog"
+                    },
+                    "actions": [
+                        {
+                            "type": "message",
+                            "label": "查看",
+                            "text": "填寫領養申請表，提供您的個人資料、家庭情況和居住環境等信息。"
+                        }
+                    ]
+                },
+                {
+                    "thumbnailImageUrl": f"{ngrok_url}/static/4領養面談.jpg",
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": "領養面談",
+                    "text": "step 4",
+                    "defaultAction": {
+                        "type": "message",
+                        "label": "Reply with message",
+                        "text": "Interview about adoption"
+                    },
+                    "actions": [
+                        {
+                            "type": "message",
+                            "label": "查看",
+                            "text": "領養機構的工作人員會與您進行面談，了解您的意圖、生活方式和對狗的照顧能力。"
+                        }
+                    ]
+                },
+                {
+                    "thumbnailImageUrl": f"{ngrok_url}/static/5參觀狗狗.jpg",
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": "參觀狗狗",
+                    "text": "step 5",
+                    "defaultAction": {
+                        "type": "message",
+                        "label": "Reply with message",
+                        "text": "visit doge"
+                    },
+                    "actions": [
+                        {
+                            "type": "message",
+                            "label": "查看",
+                            "text": "您會有機會參觀可供領養的狗，了解牠們的性格和行為。"
+                        }
+                    ]
+                },
+                {
+                    "thumbnailImageUrl": f"{ngrok_url}/static/6簽署合同.jpg",
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": "簽署合同",
+                    "text": "step 6",
+                    "defaultAction": {
+                        "type": "message",
+                        "label": "Reply with message",
+                        "text": "sign contract"
+                    },
+                    "actions": [
+                        {
+                            "type": "message",
+                            "label": "查看",
+                            "text": "如果您決定領養，將會完成相關的合約，承諾提供適當的照顧和愛護。"
+                        }
+                    ]
+                },
+                {
+                    "thumbnailImageUrl": f"{ngrok_url}/static/7接狗回家.jpg",
+                    "imageBackgroundColor": "#FFFFFF",
+                    "title": "接狗回家",
+                    "text": "step 7",
+                    "defaultAction": {
+                        "type": "message",
+                        "label": "Reply with message",
+                        "text": "bring dog to home"
+                    },
+                    "actions": [
+                        {
+                            "type": "message",
+                            "label": "查看",
+                            "text": "領養完成後，您可以接狗回家，開始新的生活。"
+                        }
+                    ]
+                }
+            ],
+            "imageAspectRatio": "rectangle",
+            "imageSize": "cover"
+        }
+    }
+    return message
 
 # 無情的聊天機器人
 def RAG(text):
@@ -243,7 +383,7 @@ def crawler():
             # 將資料加入 data 清單
             data.append([shelter_name, max_capacity, current_count])
     # 儲存資料到 JSON 文件
-    bbkkbkk = r"C:/Users/TMP214/Desktop/Line Bot/shelter_data"
+    bbkkbkk = "shelter_data"
     save_path = f"{bbkkbkk}/{current_date}"
 
     with open(save_path, 'w', encoding='utf-8') as f:
@@ -278,7 +418,6 @@ def shelter_fig():
     tbl.set_fontsize(12)
     tbl.scale(1.2, 1.2)  # 調整表格大小
 
-    save_dir = 'LineBot2024-12/LineBot2024-12/YOLOV11/ultralytics/static'
     plt.savefig(f'{save_dir}/{current_date}.jpg')
 
 # 設定每天00:00執行爬蟲
