@@ -10,7 +10,6 @@ from linebot.v3.messaging import (
 )
 
 # 網頁爬蟲+繪圖相關模組
-import chromedriver_autoinstaller
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -79,7 +78,7 @@ def index():
             if events[0]["message"]["type"] == "text":
                 text = events[0]["message"]["text"]
 
-                if text == "@附近收容所":
+                if text == "@收容所":
                     payload["messages"] = [shelter_zelda(), shelter_link()]
 
                 elif text == "@拍照":
@@ -97,7 +96,6 @@ def index():
             replyMessage(payload)
 
     return payload
-
 
 
 # 無情的辨識圖片開始
@@ -129,21 +127,18 @@ def distinguish(message_id):
     }
     return message
 
+
 # 政府網站偶爾會鬧脾氣
 def shelter_link():
 
     message = {
         "type": "text",
-        "text": "想在google map上面查看? 點我前往連結",
-        "action": {
-            "type": "uri",
-            "label": "Open in Google Maps",
-            "uri": "https://maps.app.goo.gl/DCfrDHKc17zV68tV6"
-        }
+        "text": "想在google map上面查看? 前往連結：https://maps.app.goo.gl/DCfrDHKc17zV68tV6",
     }
     return message
 
 
+# 我只是附帶的
 def shelter_zelda():
     # 每天更新一次，但同一天的資料一樣
     image_url = f'{ngrok_url}/static/{current_date}.jpg'
@@ -156,16 +151,8 @@ def shelter_zelda():
 
     return message
 
-# 怕使用者不會用
-def take_a_photo():
-    message = {
-        "type":"text",
-        "text": "請點擊連結拍照或直接上傳圖片：https://line.me/R/nv/camera"
-    }
 
-    return message 
-
-# 擠牙膏，後面有更好的想法可以換掉這個
+# 結合聊天機器人可以讓功能好一點
 def manual():
     message = {
         "type": "template",
@@ -194,7 +181,7 @@ def manual():
                 {
                     "thumbnailImageUrl": f"{ngrok_url}/static/2犬舍.jpg",
                     "imageBackgroundColor": "#FFFFFF",
-                    "title": "研究不同狗的品種",
+                    "title": "犬舍",
                     "text": "step 2",
                     "defaultAction": {
                         "type": "message",
@@ -309,9 +296,9 @@ def manual():
 # 無情的聊天機器人
 def RAG(text):
     # 測試用網址 --這邊需要更改
-    # n8n_url = ''
+    # n8n_url = 'http://localhost:5678/webhook-test/170accfe-f167-4f24-813e-63b437adaf29'
     # 生產用網址
-    n8n_url = ''
+    n8n_url = 'http://localhost:5678/webhook/170accfe-f167-4f24-813e-63b437adaf29'
 
     data = {
         "text": text  # 將傳遞的文字作為參數傳送
@@ -339,8 +326,6 @@ def RAG(text):
 
 #偷偷塞爬蟲在這裡
 def crawler():
-    # 安裝最新版本的 chromedriver
-    chromedriver_autoinstaller.install()
 
     # 配置 Chrome 選項
     chrome_options = Options()
@@ -424,6 +409,7 @@ def shelter_fig():
 schedule.every().day.at("00:00").do(crawler)  
 
 
+# 先爬一次，之後每天自動爬一次
 def run_schedule():
     crawler()
     while True:
@@ -440,6 +426,7 @@ def replyMessage(payload):
     else:
         print(response.text)
 
+# 任務分頭行動，這邊可以寫成兩個程式，沒必要硬擠
 if __name__ == "__main__":
     threading.Thread(target=run_schedule, daemon=True).start()
     app.run(debug=True)
