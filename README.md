@@ -1,3 +1,31 @@
+#Hey Doggy! 🐾
+##About Us
+🐶 **Hi, we are Hey Doggy!** ૮₍ • ᴥ • ₎ა ♪
+
+🐕 **We help people understand the basic emotions of dogs.**
+
+🦴 **Currently Supported**:
+-Android System for App download.
+
+🐩**Good News for iPhone and LINE Users**:
+We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Line chat Bot ： 
   step1：you need to create a development account.
   step2：fill congig.ini.
