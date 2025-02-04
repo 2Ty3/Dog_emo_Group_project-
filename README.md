@@ -21,30 +21,19 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 ## Demo Videos for LineBot and App
 
-<div style="display: flex; gap: 10px;">
 
-  <div>
-    <a href="https://www.youtube.com/watch?v=wu06rup4fm4">
-      <img src="https://img.youtube.com/vi/wu06rup4fm4/0.jpg" alt="Preview" width="200">
-    </a>
-    <p>Preview: A quick overview of the app.</p>
-  </div>
+- <a href="https://www.youtube.com/watch?v=1w2M-5WNSK8" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/480px-YouTube_icon_%282013-2017%29.png" alt="YouTube Logo" width="20" height="20">
+  </a> [Preview](https://www.youtube.com/watch?v=1w2M-5WNSK8)
 
-  <div>
-    <a href="https://www.youtube.com/watch?v=T5kKySmiGqU">
-      <img src="https://img.youtube.com/vi/T5kKySmiGqU/0.jpg" alt="LinBot" width="200">
-    </a>
-    <p>LinBot: Learn about our LineBot features.</p>
-  </div>
+- <a href="https://www.youtube.com/watch?v=T5kKySmiGqU" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/480px-YouTube_icon_%282013-2017%29.png" alt="YouTube Logo" width="20" height="20">
+  </a> [LinBot](https://www.youtube.com/watch?v=T5kKySmiGqU)
 
-  <div>
-    <a href="https://www.youtube.com/watch?v=FmdBg1JazY8">
-      <img src="https://img.youtube.com/vi/FmdBg1JazY8/0.jpg" alt="Android App" width="200">
-    </a>
-    <p>Android App: Explore app functionalities.</p>
-  </div>
+- <a href="https://www.youtube.com/watch?v=FmdBq1JazY8" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/480px-YouTube_icon_%282013-2017%29.png" alt="YouTube Logo" width="20" height="20">
+  </a> [Andrio App](https://www.youtube.com/watch?v=FmdBq1JazY8)
 
-</div>
 
 
 
