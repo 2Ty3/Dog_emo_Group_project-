@@ -13,8 +13,8 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 
 ## Here are some Demo videos for our LineBot and App
--[Preview](https://www.youtube.com/watch?v=1w2M-5WNSK8) 
--[LinBot](https://www.youtube.com/watch?v=T5kKySmiGqU)
+-[Preview](https://www.youtube.com/watch?v=1w2M-5WNSK8)  
+-[LinBot](https://www.youtube.com/watch?v=T5kKySmiGqU)  
 -[Andrio App](https://www.youtube.com/watch?v=FmdBq1JazY8)
 
 ## Here are some Demo videos for our LineBot and App
