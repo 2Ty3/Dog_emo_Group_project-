@@ -14,14 +14,16 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 ## Here are some Demo videos for our LineBot and App
 -[Preview](https://www.youtube.com/watch?v=1w2M-5WNSK8) 
-<a href="https://www.youtube.com/watch?v=1w2M-5WNSK8">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/480px-YouTube_icon_%282013-2017%29.png" alt="YouTube" width="15" height="15">
-</a>
-
-
 -[LinBot](https://www.youtube.com/watch?v=T5kKySmiGqU)
-
 -[Andrio App](https://www.youtube.com/watch?v=FmdBq1JazY8)
+
+## Here are some Demo videos for our LineBot and App
+
+| Feature        | Video Link                                                                 |
+|----------------|---------------------------------------------------------------------------|
+| **Preview**    | [![Preview](https://img.youtube.com/vi/wu06rup4fm4/0.jpg)](https://www.youtube.com/watch?v=wu06rup4fm4) |
+| **LinBot**     | [![LinBot](https://img.youtube.com/vi/T5kKySmiGqU/0.jpg)](https://www.youtube.com/watch?v=T5kKySmiGqU) |
+| **Android App**| [![Android App](https://img.youtube.com/vi/FmdBg1JazY8/0.jpg)](https://www.youtube.com/watch?v=FmdBg1JazY8) |
 
 
 
