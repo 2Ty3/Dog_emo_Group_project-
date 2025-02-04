@@ -11,6 +11,15 @@
 🐩**Good News for iPhone and LINE Users**:
 We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
+
+## Here are some Demo videos for our LineBot and App
+-[Preview]  
+-[LinBot](https://www.youtube.com/watch?v=T5kKySmiGqU)
+-[Andrio App](https://www.youtube.com/watch?v=FmdBq1JazY8)
+
+
+
+
 ![Your GitHub Stats](https://github-readme-stats.vercel.app/api?username=YourGitHubUsername&show_icons=true&theme=tokyonight)
 
 
