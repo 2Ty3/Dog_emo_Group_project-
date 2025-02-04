@@ -1,5 +1,6 @@
-#Hey Doggy! 🐾
-##About Us
+# Hey Doggy! 🐾
+## About Us
+
 🐶 **Hi, we are Hey Doggy!** ૮₍ • ᴥ • ₎ა ♪
 
 🐕 **We help people understand the basic emotions of dogs.**
