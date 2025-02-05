@@ -6,11 +6,16 @@
 🐕 **We help people understand the basic emotions of dogs.**
 
 🦴 **Currently Supported**:
--Android System for App download.
+   - Android System for App download.
 
 🐩**Good News for iPhone and LINE Users**:
 We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
+</br>
+![Hey Doggy! GitHub Status](https://github-readme-stats.vercel.app/api?username=HeyDoggyProject&show_icons=true&theme=tokyonight&custom_title=Hey%20Doggy!%20GitHub%20Status)
+
+</br>
+</br>
 
 ## Here are some Demo videos for our LineBot and App
 - <a href="https://www.youtube.com/watch?v=1w2M-5WNSK8" target="_blank" style="display: flex; align-items: center; text-decoration: none;">
@@ -37,11 +42,9 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 
 
-![Your GitHub Stats](https://github-readme-stats.vercel.app/api?username=YourGitHubUsername&show_icons=true&theme=tokyonight)
 
 
 
-哈哈哈哈哈哈哈
 
 
 
