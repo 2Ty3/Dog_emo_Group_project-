@@ -12,7 +12,9 @@
 We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 </br>
-![Hey Doggy! GitHub Status](https://github-readme-stats.vercel.app/api?username=HeyDoggyProject&show_icons=true&theme=tokyonight&custom_title=Hey%20Doggy!%20GitHub%20Status)
+
+![Hey Doggy! GitHub Status](https://github-readme-stats.vercel.app/api?username=YourGitHubUsername&show_icons=true&theme=tokyonight&custom_title=Hey%20Doggy!%20GitHub%20Status)
+
 
 </br>
 </br>
