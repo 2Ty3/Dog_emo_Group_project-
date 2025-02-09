@@ -9,296 +9,95 @@ from linebot.v3.messaging import (
     MessagingApiBlob,
 )
 
-# 網頁爬蟲+繪圖相關模組
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from bs4 import BeautifulSoup
-import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib
-
 # 圖片辨識相關模組
 from ultralytics import YOLO
 import cv2
 
-# 日期時間相關模組
-from datetime import datetime
-import schedule
-import time
-
-# 其他常用模組
-import json
+# 其他模組
 import requests
 import configparser
-import threading
+import os
+from datetime import datetime
+from google.cloud import storage
 
 
-app = Flask(__name__, static_url_path="/static")
-app.config['UPLOAD_FOLDER'] = 'static'
+# 固定儲存路徑
+save_dir = os.path.join('tmp', 'static') 
+os.makedirs(save_dir, exist_ok=True)
+#當天日期，收容所的檔案名稱會用這個
+current_date = str(datetime.now().date()) 
+# 圖片需要提供的網址
+base_url = os.getenv('base_url')
+
+
+app = Flask(__name__, static_url_path="/static", static_folder="tmp/static") 
+app.config['UPLOAD_FOLDER'] = 'tmp/static'
 app.config['ALLOWED_EXTENSIONS'] = {'jpg', 'jpeg', 'png', 'gif'}
 
-config = configparser.ConfigParser()
+#我將重要資訊裝進別的文件，不要寫進程式碼
+config = configparser.ConfigParser() 
 config.read("config.ini")
 configuration = Configuration(access_token=config.get('line-bot', 'channel_access_token'))
 handler = WebhookHandler(config.get('line-bot', 'channel_secret'))
-my_line_id = config.get('line-bot', 'my_line_id')
 line_login_id = config.get('line-bot', 'line_login_id')
 line_login_secret = config.get('line-bot', 'line_login_secret')
-my_phone = config.get('line-bot', 'my_phone')
 HEADER = {
     'Content-type': 'application/json',
     'Authorization': F'Bearer {config.get("line-bot", "channel_access_token")}'
 }
-current_date = datetime.now().date()
-save_dir = 'static'
-ngrok_url =config.get('line-bot', 'end_point')
+
 
 
 # Line的部分由POST傳、抓資料
 @app.route("/", methods=['POST', 'GET'])
 def index():
     if request.method == 'GET':
-        return 'GET_ok'   
-    body = request.json
-    events = body["events"]
+        return 'GET_ok'
 
-    if request.method == 'POST' and len(events) == 0:
+    body = request.json
+    events = body.get("events", [])
+
+    if request.method == 'POST' and not events:
         return 'POST_ok'
+
     print(body)
 
-    if "replyToken" in events[0]:
-        payload = dict()
-        replyToken = events[0]["replyToken"]
-        payload["replyToken"] = replyToken
+    event = events[0]
+    if "replyToken" not in event:
+        return {}
 
-        if events[0]["type"] == "message":
-            if events[0]["message"]["type"] == "text":
-                text = events[0]["message"]["text"]
+    replyToken = event["replyToken"]
+    payload = {"replyToken": replyToken}
 
-                if text == "@收容所":
-                    payload["messages"] = [shelter_zelda(), shelter_link()]
+    # 文字
+    if event["type"] == "message" and event["message"]["type"] == "text":
+        text = event["message"]["text"]
+        if text == "@收容所":
+            payload["messages"] = [shelter_zelda(), shelter_link()]
+        elif text == "@新手飼養手冊":
+            payload["messages"] = [manual()]
+        else:
+            payload["messages"] = [RAG(text)]
+        replyMessage(payload)
+        return payload
 
-                elif text == "@拍照":
-                    payload["messages"] = [take_a_photo()]
+    # 圖片
+    if event["type"] == "message" and event["message"]["type"] == "image":
+        message_id = event["message"]["id"]
+        payload["messages"] = [distinguish(message_id)]
+        replyMessage(payload)
+        return payload
 
-                elif text == "@新手飼養手冊":
-                    payload["messages"] = [manual()]   
-
-                else:
-                    payload["messages"] = [RAG(text)]
-                replyMessage(payload)
-            elif events[0]["message"]["type"] == "image":
-                message_id = events[0]["message"]["id"]
-                payload["messages"] = [distinguish(message_id)]
-            replyMessage(payload)
-
-    return payload
-
-
-# 無情的辨識圖片開始
-def distinguish(message_id):
-    with ApiClient(configuration) as api_client:
-        line_bot_blob_api = MessagingApiBlob(api_client)
-        message_content = line_bot_blob_api.get_message_content(message_id=message_id)
-        # 使用文件路徑寫入圖片
-        image_path = f'images/{message_id}.jpg' #放在images資料夾的圖片名稱
-        with open(image_path, 'wb') as f:
-            f.write(message_content)    #將抓到的圖片資訊(binary)寫成圖片
-    # 辨識圖片  
-    img = cv2.imread(image_path)
-    model = YOLO('0108.pt')
-    results = model(img)
-    if isinstance(results, list):
-        results = results[0]
-        
-    # 將結果圖片寫入到static資料夾內
-    output_image_path = f'{save_dir}/{message_id}_result.jpg'
-    results.save(output_image_path)  
-    
-    # 需要透過一個網站提供URL
-    image_url = f'{ngrok_url}/static/{message_id}_result.jpg'
-    message = {
-        "type" : "image",
-        "originalContentUrl" : image_url , 
-        "previewImageUrl" : image_url,
-    }
-    return message
+    return {}
 
 
-# 政府網站偶爾會鬧脾氣
-def shelter_link():
 
-    message = {
-        "type": "text",
-        "text": "想在google map上面查看? 前往連結：https://maps.app.goo.gl/DCfrDHKc17zV68tV6",
-    }
-    return message
-
-
-# 我只是附帶的
-def shelter_zelda():
-    # 每天更新一次，但同一天的資料一樣
-    image_url = f'{ngrok_url}/static/{current_date}.jpg'
-
-    message = {
-        "type" : "image",
-        "originalContentUrl" : image_url , 
-        "previewImageUrl" : image_url,
-    }
-
-    return message
-
-
-# 結合聊天機器人可以讓功能好一點
-def manual():
-    message = {
-        "type": "template",
-        "altText": "this is a carousel template",
-        "template": {
-            "type": "carousel",
-            "columns": [
-                {
-                    "thumbnailImageUrl": f"{ngrok_url}/static/1研究不同狗的品種.jpg",
-                    "imageBackgroundColor": "#FFFFFF",
-                    "title": "研究不同狗的品種",
-                    "text": "step 1",
-                    "defaultAction": {
-                        "type": "message",
-                        "label": "Reply with message",
-                        "text": "Information about different dog breeds"
-                    },
-                    "actions": [
-                        {
-                            "type": "message",
-                            "label": "查看",
-                            "text": "研究不同的犬種，了解他們的性格、需求和特點，以選擇適合您的生活方式的犬種。"
-                        }
-                    ]
-                },
-                {
-                    "thumbnailImageUrl": f"{ngrok_url}/static/2犬舍.jpg",
-                    "imageBackgroundColor": "#FFFFFF",
-                    "title": "犬舍",
-                    "text": "step 2",
-                    "defaultAction": {
-                        "type": "message",
-                        "label": "Reply with message",
-                        "text": "Information about dog breeds"
-                    },
-                    "actions": [
-                        {
-                            "type": "message",
-                            "label": "查看",
-                            "text": "尋找當地的動物收容所、犬舍或領養機構，以找到可供領養的狗。"
-                        }
-                    ]
-                },
-                {
-                    "thumbnailImageUrl": f"{ngrok_url}/static/3填寫領養表單.jpg",
-                    "imageBackgroundColor": "#FFFFFF",
-                    "title": "填寫領養表單",
-                    "text": "step 3",
-                    "defaultAction": {
-                        "type": "message",
-                        "label": "Reply with message",
-                        "text": "Information about adopting dog"
-                    },
-                    "actions": [
-                        {
-                            "type": "message",
-                            "label": "查看",
-                            "text": "填寫領養申請表，提供您的個人資料、家庭情況和居住環境等信息。"
-                        }
-                    ]
-                },
-                {
-                    "thumbnailImageUrl": f"{ngrok_url}/static/4領養面談.jpg",
-                    "imageBackgroundColor": "#FFFFFF",
-                    "title": "領養面談",
-                    "text": "step 4",
-                    "defaultAction": {
-                        "type": "message",
-                        "label": "Reply with message",
-                        "text": "Interview about adoption"
-                    },
-                    "actions": [
-                        {
-                            "type": "message",
-                            "label": "查看",
-                            "text": "領養機構的工作人員會與您進行面談，了解您的意圖、生活方式和對狗的照顧能力。"
-                        }
-                    ]
-                },
-                {
-                    "thumbnailImageUrl": f"{ngrok_url}/static/5參觀狗狗.jpg",
-                    "imageBackgroundColor": "#FFFFFF",
-                    "title": "參觀狗狗",
-                    "text": "step 5",
-                    "defaultAction": {
-                        "type": "message",
-                        "label": "Reply with message",
-                        "text": "visit doge"
-                    },
-                    "actions": [
-                        {
-                            "type": "message",
-                            "label": "查看",
-                            "text": "您會有機會參觀可供領養的狗，了解牠們的性格和行為。"
-                        }
-                    ]
-                },
-                {
-                    "thumbnailImageUrl": f"{ngrok_url}/static/6簽署合同.jpg",
-                    "imageBackgroundColor": "#FFFFFF",
-                    "title": "簽署合同",
-                    "text": "step 6",
-                    "defaultAction": {
-                        "type": "message",
-                        "label": "Reply with message",
-                        "text": "sign contract"
-                    },
-                    "actions": [
-                        {
-                            "type": "message",
-                            "label": "查看",
-                            "text": "如果您決定領養，將會完成相關的合約，承諾提供適當的照顧和愛護。"
-                        }
-                    ]
-                },
-                {
-                    "thumbnailImageUrl": f"{ngrok_url}/static/7接狗回家.jpg",
-                    "imageBackgroundColor": "#FFFFFF",
-                    "title": "接狗回家",
-                    "text": "step 7",
-                    "defaultAction": {
-                        "type": "message",
-                        "label": "Reply with message",
-                        "text": "bring dog to home"
-                    },
-                    "actions": [
-                        {
-                            "type": "message",
-                            "label": "查看",
-                            "text": "領養完成後，您可以接狗回家，開始新的生活。"
-                        }
-                    ]
-                }
-            ],
-            "imageAspectRatio": "rectangle",
-            "imageSize": "cover"
-        }
-    }
-    return message
-
-# 無情的聊天機器人
+# n8n上的RAG
 def RAG(text):
     # 測試用網址 --這邊需要更改
-    # n8n_url = 'http://localhost:5678/webhook-test/170accfe-f167-4f24-813e-63b437adaf29'
+    # n8n_url = 'http://localhost:5678/webhook-test/自訂參數'
     # 生產用網址
-    n8n_url = 'http://localhost:5678/webhook/170accfe-f167-4f24-813e-63b437adaf29'
+    n8n_url = 'http://localhost:5678/webhook/自訂參數'
 
     data = {
         "text": text  # 將傳遞的文字作為參數傳送
@@ -323,98 +122,234 @@ def RAG(text):
     }
     return message
 
+# 無情的辨識圖片開始
+# 先抓圖片
+def distinguish(message_id):
+    """
+    辨識圖片，由message_id向line官方要圖片
+    """
+    with ApiClient(configuration) as api_client:
+        line_bot_blob_api = MessagingApiBlob(api_client)
+        message_content = line_bot_blob_api.get_message_content(message_id=message_id)
+        image_path = os.path.join(app.config["UPLOAD_FOLDER"], f"{message_id}.jpg")
+        with open(image_path, 'wb') as f:
+            f.write(message_content)
 
-#偷偷塞爬蟲在這裡
-def crawler():
+    # 確認圖片保存
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"Image file {image_path} not saved correctly.")
 
-    # 配置 Chrome 選項
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+    # 呼叫yolo模型，來得到辨識結果的url
+    image_url = emotion(image_path, message_id)
 
-    # 初始化 WebDriver
-    driver = webdriver.Chrome(options=chrome_options)
+    message = {
+        "type": "image",
+        "originalContentUrl": image_url,
+        "previewImageUrl": image_url,
+    }
 
-    # 打開目標網站
-    url = "https://www.pet.gov.tw/AnimalApp/ShelterMap.aspx"
-    driver.get(url)
+    return message
 
-    # 等待特定元素加載
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "tab2-1")))
+# 分析圖片
+def emotion(image_path, message_id):
+    """
+    分析圖片情緒
+    Args:
+        message_id是我想要命名的名稱
+    Returns:
+        url: 結果圖片url
+    """
 
-    # 獲取頁面源代碼並解析
-    html = driver.page_source
-    soup = BeautifulSoup(html, "html.parser")
+    # 使用 YOLO 模型辨識
+    img = cv2.imread(image_path)
+    model = YOLO('0108.pt')
+    results = model(img)
 
-    # 取得指定的表格
-    table = soup.find("table", {"id": "tab2-1"})
+    # 取最高可能性的
+    if isinstance(results, list):
+        results = results[0]
 
-    # 提取表格中的每一行資料
-    rows = table.find_all("tr")
-    # 把資料丟進清單，方便儲存
-    data = []
+    # 保存 YOLO 辨識結果
+    output_image_path = os.path.join(app.config["UPLOAD_FOLDER"], f"{message_id}_result.jpg")
+    
+    # 確保目錄存在
+    os.makedirs(os.path.dirname(output_image_path), exist_ok=True)
 
-    # 跳過第一行標題，並解析每一行數據
-    for row in rows[1:]:
-        columns = row.find_all("td")
-        
-        # 確保列數正確
-        if len(columns) >= 3:
-            shelter_name = columns[0].get_text(strip=True)
-            max_capacity = int(columns[1].get_text(strip=True))
-            current_count = int(columns[2].get_text(strip=True))
+    # 嘗試保存 YOLO 結果圖片
+    try:
+        results.save(output_image_path)
+    except AttributeError:
+        result_img = results.plot()
+        cv2.imwrite(output_image_path, result_img)
 
-            # 將資料加入 data 清單
-            data.append([shelter_name, max_capacity, current_count])
-    # 儲存資料到 JSON 文件
-    bbkkbkk = "shelter_data"
-    save_path = f"{bbkkbkk}/{current_date}"
+    # 檢查結果圖片是否成功保存
+    if not os.path.exists(output_image_path):
+        raise FileNotFoundError(f"Output image file {output_image_path} was not saved correctly.")
 
-    with open(save_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-    driver.quit()
-
-    shelter_fig()#將資料轉成圖片
-
-
-def shelter_fig():
-    with open(f'shelter_data/{current_date}', 'rb') as file:
-        data = json.load(file)
-
-    # 轉換為 DataFrame
-    df = pd.DataFrame(data, columns=["機構名稱", "可收容數量", "目前數量"])
-
-    # 創建圖像
-    matplotlib.rc('font', family='Microsoft JhengHei')
-    fig, ax = plt.subplots(figsize=(10, 8))  # 設定圖像大小
-    ax.axis('off')  # 不顯示軸
-
-    # 建立表格 (直接用 matplotlib.table.Table)
-    tbl = ax.table(
-        cellText=df.values,  # 表格內容
-        colLabels=df.columns,  # 表頭
-        loc='center',  # 表格位置
-        cellLoc='center',  # 單元格對齊方式
-        colWidths=[0.3, 0.2, 0.2]  # 列寬比例
-    )
-
-    tbl.auto_set_font_size(False)
-    tbl.set_fontsize(12)
-    tbl.scale(1.2, 1.2)  # 調整表格大小
-
-    plt.savefig(f'{save_dir}/{current_date}.jpg')
-
-# 設定每天00:00執行爬蟲
-schedule.every().day.at("00:00").do(crawler)  
+    # 生成公開 url
+    image_url = f"{base_url}/static/{message_id}_result.jpg"
+    # 回傳圖片url
+    return image_url
 
 
-# 先爬一次，之後每天自動爬一次
-def run_schedule():
-    crawler()
-    while True:
-        schedule.run_pending()  # 執行排程任務
-        time.sleep(3600)  # 每小時檢查一次，才不會占用資源
+# 小蝸提供的google map地圖
+def shelter_link():
+
+    message = {
+        "type": "text",
+        "text": "想在google map上面查看? 前往連結：https://maps.app.goo.gl/DCfrDHKc17zV68tV6",
+    }
+    return message
+
+
+# 我只是附帶的
+def shelter_zelda():
+    """
+    根據當前日期生成圖片訊息字典。
+    圖片檔案先下載到本地暫存目錄，再生成對應的圖片 URL。
+    """
+    
+    image = f"{current_date}.jpg"
+    image_path = os.path.join("/tmp", image)  # 暫存目錄
+
+    # 檢查圖片是否存在，如果不存在才從GCS下載
+    if not os.path.exists(image_path):
+        download_to_tmp(f"shelter/image/{image}")
+
+    image_url = f'{base_url}/static/{current_date}.jpg'
+
+    # 返回圖片訊息字典
+    message = {
+        "type": "image",
+        "originalContentUrl": image_url,
+        "previewImageUrl": image_url,
+    }
+    return message
+
+
+def download_to_tmp(source_blob_name):
+    """
+    從固定 GCS 儲存桶 ('orereo') 中下載指定檔案到本地暫存目錄。
+    Args:
+        source_blob_name (str): GCS 中的檔案路徑。
+    Returns:
+        str: 本地檔案下載路徑。
+    """
+    try:
+
+        # 設定本地下載路徑，保留目錄結構
+        local_path = os.path.join(save_dir, source_blob_name)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)  # 確保子目錄存在
+
+        # 建立 GCS 客戶端
+        storage_client = storage.Client()
+
+        # 獲取 bucket 和 blob（檔案物件）
+        bucket = storage_client.bucket('orereo')
+        blob = bucket.blob(source_blob_name)
+
+        # 將檔案下載到本地
+        blob.download_to_filename(local_path)
+
+        print(f"檔案已成功下載到：{local_path}")
+        return local_path
+
+    except Exception as e:
+        print(f"檔案下載失敗：{e}")
+        raise
+
+
+
+
+def manual():
+
+# 家瑋提供的文本內容    
+    steps = [
+        {
+            "文本": "1研究不同狗的品種.jpg",
+            "title": "研究不同狗的品種",
+            "text": "step 1",
+            "reply_text": "Information about different dog breeds",
+            "action_text": "研究不同的犬種，了解他們的性格、需求和特點，以選擇適合您的生活方式的犬種。"
+        },
+        {
+            "文本": "2犬舍.jpg",
+            "title": "犬舍",
+            "text": "step 2",
+            "reply_text": "Information about dog breeds",
+            "action_text": "尋找當地的動物收容所、犬舍或領養機構，以找到可供領養的狗。"
+        },
+        {
+            "文本": "3填寫領養表單.jpg",
+            "title": "填寫領養表單",
+            "text": "step 3",
+            "reply_text": "Information about adopting dog",
+            "action_text": "填寫領養申請表，提供您的個人資料、家庭情況和居住環境等信息。"
+        },
+        {
+            "文本": "4領養面談.jpg",
+            "title": "領養面談",
+            "text": "step 4",
+            "reply_text": "Information about interview about adoption",
+            "action_text": "領養機構的工作人員會與您進行面談，了解您的意圖、生活方式和對狗的照顧能力。"
+        },
+        {
+            "文本": "5參觀狗狗.jpg",
+            "title": "參觀狗狗",
+            "text": "step 5",
+            "reply_text": "Visit the dogs available for adoption and learn about their personalities and behaviors",
+            "action_text": "您會有機會參觀可供領養的狗，了解牠們的性格和行為。"
+        },
+        {
+            "文本": "6簽署合同.jpg",
+            "title": "簽署合同",
+            "text": "step 6",
+            "reply_text": "If you decide to adopt a dog, you will complete a contract pledging to provide appropriate care and love.",
+            "action_text": "如果您決定領養，將會完成相關的合約，承諾提供適當的照顧和愛護。"
+        },
+        {
+            "文本": "7接狗回家.jpg",
+            "title": "接狗回家",
+            "text": "step 7",
+            "reply_text": "adopt a dog to home",
+            "action_text": "領養完成後，您可以接狗回家，開始新的生活。"
+        }
+    ]
+# Line的格式
+    columns = []
+    for step in steps:
+        columns.append({
+            "thumbnailImageUrl": f"{base_url}/static/{step['文本']}",
+            "imageBackgroundColor": "#FFFFFF",
+            "title": step["title"],
+            "text": step["text"],
+            "defaultAction": {
+                "type": "message",
+                "label": "Reply with message",
+                "text": step["reply_text"]
+            },
+            "actions": [
+                {
+                    "type": "message",
+                    "label": "查看",
+                    "text": step["action_text"]
+                }
+            ]
+        })
+    #將上面的column加入message
+    message = {
+        "type": "template",
+        "altText": "this is a carousel template",
+        "template": {
+            "type": "carousel",
+            "columns": columns,
+            "imageAspectRatio": "rectangle",
+            "imageSize": "cover"
+        }
+    }
+    
+    return message
+
 
 
 # Line官方給的回覆訊息方法
@@ -426,7 +361,5 @@ def replyMessage(payload):
     else:
         print(response.text)
 
-# 任務分頭行動，這邊可以寫成兩個程式，沒必要硬擠
 if __name__ == "__main__":
-    threading.Thread(target=run_schedule, daemon=True).start()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
