@@ -1,0 +1,9 @@
+APP測試遇到的問題:
+1.APP拍照、版面炸掉、角度、辨識問題
+2.Dogs一隻happy/一隻angry=happy, no angry
+3.快速連拍有時會出錯(同一張原本是happy，會變成angry)
+
+Line Bot測試遇到的問題:
+1.live photo 辨識會出兩結果(gif、apple)
+2.有些問答沒有參考連結
+3.google map link
