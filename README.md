@@ -39,16 +39,13 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 
 
-## Animated Icons
-
-![Docker](https://media.giphy.com/media/fsEaZldNC8A1PJ3m6B/giphy.gif)
-![Python](https://media.giphy.com/media/KAq5w47R9rmTuvWOWa/giphy.gif)
-![Figma](https://media.giphy.com/media/ZgTR3UQ9LJqxH1FfGu/giphy.gif)
-![n8n](https://media.giphy.com/media/zpuyYZAC0ERKEcmWAT/giphy.gif)
-
-
-https://raw.githubusercontent.com/HeyDoggyProject/repository/main/assets/docker.gif
-
+## Tools that we use 
+<span> 
+  <img src="https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/-n8n-0C4CCF?style=flat-square&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Figma-F24E1E?style=flat-square&logo=figma&logoColor=white" />
+</span>
 
 
 
