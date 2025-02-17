@@ -41,21 +41,13 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 ## Animated Icons
 
-### Docker
-<iframe src="https://lottiefiles.com/embedded_animation/8472010" width="100" height="100" frameBorder="0"></iframe>
+![Docker](https://media.giphy.com/media/fsEaZldNC8A1PJ3m6B/giphy.gif)
+![Python](https://media.giphy.com/media/KAq5w47R9rmTuvWOWa/giphy.gif)
+![Figma](https://media.giphy.com/media/ZgTR3UQ9LJqxH1FfGu/giphy.gif)
+![n8n](https://media.giphy.com/media/zpuyYZAC0ERKEcmWAT/giphy.gif)
 
 
-
-### Python
-![Python](https://user-images.githubusercontent.com/22025862/84917355-5bc22980-b0cc-11ea-9e2e-6d3e60c6f1e6.gif)
-
-### Figma
-![Figma](https://user-images.githubusercontent.com/22025862/84917422-6e3c6300-b0cc-11ea-83ae-927a65df5366.gif)
-
-### n8n
-![n8n](https://user-images.githubusercontent.com/22025862/84917491-7d232580-b0cc-11ea-939e-0977f012eca2.gif)
-
-
+https://raw.githubusercontent.com/HeyDoggyProject/repository/main/assets/docker.gif
 
 
 
