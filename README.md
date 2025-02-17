@@ -46,7 +46,6 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
     <a href="https://dog-emotion.space/">https://dog-emotion.space/</a>
   </span>
 
-[![Website Preview](https://raw.githubusercontent.com/YourUsername/Dog_emo_Group_project/main/assets/WebScreenShot.png)](https://dog-emotion.space/)
 
 
 
