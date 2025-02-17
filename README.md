@@ -36,15 +36,28 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
   </a>
 
 
+</br>
+</br>
 
+## Website
+<h1>
+  <span>
+    <img src="https://img.shields.io/badge/-%E2%9E%A1-blue?style=flat-square" width="30" height="30"/>
+    <a href="https://dog-emotion.space/">https://dog-emotion.space/</a>
+  </span>
+
+[![Website Preview](https://screenshot.api.slingacademy.com/api/v1/screenshot?url=https://dog-emotion.space&width=600)](https://dog-emotion.space/)
+
+</br>
+</br>
 
 
 ## Tools that we use 
 <span> 
-  <img src="https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
-  <img src="https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/-n8n-0C4CCF?style=flat-square&logo=n8n&logoColor=white" />
-  <img src="https://img.shields.io/badge/-Figma-F24E1E?style=flat-square&logo=figma&logoColor=white" />
+  <img src="https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white" width="150" height="40"/>
+  <img src="https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white" width="150" height="40"/>
+  <img src="https://img.shields.io/badge/-n8n-0C4CCF?style=flat-square&logo=n8n&logoColor=white" width="150" height="40"/>
+  <img src="https://img.shields.io/badge/-Figma-F24E1E?style=flat-square&logo=figma&logoColor=white" width="150" height="40"/>
 </span>
 
 
@@ -61,7 +74,3 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 
 
-Line chat Bot ： 
-  step1：you need to create a development account.
-  step2：fill congig.ini.
-  step3：update app.py.
