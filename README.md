@@ -46,7 +46,9 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
     <a href="https://dog-emotion.space/">https://dog-emotion.space/</a>
   </span>
 
-[![Website Preview](https://screenshot.api.slingacademy.com/api/v1/screenshot?url=https://dog-emotion.space&width=600)](https://dog-emotion.space/)
+[![Website Preview](https://api.screenshotmachine.com/?key=YOUR_API_KEY&url=https://dog-emotion.space&dimension=1024x768)](https://dog-emotion.space/)
+
+
 
 </br>
 </br>
