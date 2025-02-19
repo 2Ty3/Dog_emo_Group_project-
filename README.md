@@ -19,6 +19,13 @@ We got **Hey Doggy! LineBot!** ദ്ദി(˵ •̀ ᴗ - ˵ ) ✧
 
 </br>
 
+- <a href="https://www.youtube.com/watch?v=1w2M-5WNSK8](https://youtu.be/F5mQ3UauUIg?si=ihCS-bHYx9eUxfj_" target="_blank" style="display: flex; align-items: center; text-decoration: none;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/480px-YouTube_icon_%282013-2017%29.png" alt="YouTube Logo" width="20" height="20" style="margin-right: 8px;">
+    Report Video 
+  </a>
+### In this 30-minute video, you'll get a laid-back look at the tech being used, see some product comparisons, check out how tasks are divvied up, catch a full report, and even dive into all the production details.
+
+
 ## Here are some Demo videos for our LineBot and App
 - <a href="https://www.youtube.com/watch?v=1w2M-5WNSK8" target="_blank" style="display: flex; align-items: center; text-decoration: none;">
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/480px-YouTube_icon_%282013-2017%29.png" alt="YouTube Logo" width="20" height="20" style="margin-right: 8px;">
