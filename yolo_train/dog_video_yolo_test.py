@@ -1,65 +1,65 @@
+import os
 import cv2
 from ultralytics import YOLO
 
-# 1. 指定模型與影片的路徑
-model_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\6best.pt"
-video_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\dog_angry2.mp4"
-output_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\output1.mp4"
+def load_model(model_path, device='cuda:0'):
+    """
+    載入訓練好的 YOLO 模型
+    """
+    os.environ['CUDA_VISIBLE_DEVICES'] = device.split(':')[-1]
+    return YOLO(model_path)
 
-# 2. 載入模型 (Ultralytics YOLO)
-model = YOLO(model_path)
 
-# 3. 開啟影片
-cap = cv2.VideoCapture(video_path)
-if not cap.isOpened():
-    print("無法開啟影片，請確認路徑是否正確。")
-    exit()
+def process_video(model, video_path, output_path, conf=0.5, imgsz=640, device='cuda:0'):
+    """
+    用 YOLO model 一帧帧偵測，畫框並輸出成新影片
+    """
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print(f"無法開啟影片：{video_path}")
+        return
 
-# 4. 取得影片資訊
-fps = cap.get(cv2.CAP_PROP_FPS)
-width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    writer = cv2.VideoWriter(output_path, fourcc, fps, (w, h))
 
-# 5. 建立 VideoWriter 寫出影片
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 常見於 MP4
-out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    print(f"開始處理影片，輸出到：{output_path}")
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break  # 影片結束
 
-# 6. 逐幀處理影片，並寫入結果
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break  # 讀不到影格表示影片結束或發生問題
+        # 推論
+        results = model.predict(source=frame, conf=conf, imgsz=imgsz, device=device, verbose=False)
+        boxes = results[0].boxes
 
-    # 模型推論 (只顯示類別名稱、不顯示信心指數)
-    results = model.predict(
-        source=frame,
-        conf=0.5,
-        imgsz=640,
-        device='cuda:0'  # 若無 GPU，改 'cpu'
-    )
+        # 畫框和標籤
+        for box in boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            cls_id = int(box.cls[0])
+            label = model.names.get(cls_id, str(cls_id))
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6, (0, 255, 0), 2, cv2.LINE_AA)
 
-    # 繪製偵測框
-    boxes = results[0].boxes
-    for box in boxes:
-        x1, y1, x2, y2 = box.xyxy[0]
-        cls = int(box.cls[0])               # 類別索引
-        class_name = model.names[cls]       # 取得類別名稱
+        writer.write(frame)
 
-        x1, y1, x2, y2 = map(int, (x1, y1, x2, y2))
-        color = (0, 255, 0)  # 綠色
+    cap.release()
+    writer.release()
+    print("影片處理完成！")
 
-        # 畫框
-        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-        # 只顯示類別名稱 (不顯示置信度)
-        cv2.putText(frame, class_name, (x1, y1 - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
 
-    # 寫入處理後的影格到輸出影片
-    out.write(frame)
+def main():
+    # 路徑
+    model_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\6best.pt"
+    video_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\dog_angry2.mp4"
+    output_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\output1.mp4"
 
-# 7. 完成後釋放資源
-cap.release()
-out.release()
+    model = load_model(model_path, device='cuda:0')
+    process_video(model, video_path, output_path,
+                  conf=0.5, imgsz=640, device='cuda:0')
 
-print(f"影片處理完成，已儲存至：{output_path}")
-# 程式執行完畢後會自動結束，不需要任何額外按鍵
+if __name__ == '__main__':
+    main()

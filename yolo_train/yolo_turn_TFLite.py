@@ -1,54 +1,71 @@
 import os
+import tensorflow as tf
+import tensorflowjs as tfjs
 from ultralytics import YOLO
 
-# 檢查並安裝必要的套件
-try:
-    import tensorflow as tf
-except ImportError:
-    raise ImportError("TensorFlow 未安裝，請執行: pip install tensorflow")
+def ensure_dir(path):
+    """
+    確保資料夾存在，若不存在就新建
+    """
+    os.makedirs(path, exist_ok=True)
+    return path
 
-try:
-    import tensorflowjs as tfjs
-except ImportError:
-    raise ImportError("TensorFlow.js 未安裝，請執行: pip install tensorflowjs")
 
-# 模型路徑和匯出目標路徑
-yolo_model_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\best.pt"
-saved_model_dir = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\saved_model"
-tflite_model_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\model.tflite"
-tfjs_model_dir = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\tfjs_model"
+def load_yolo(model_path):
+    """
+    載入 Ultralytics YOLO 模型
+    """
+    print("載入 YOLO 模型...", model_path)
+    return YOLO(model_path)
 
-# 確保目標目錄存在
-os.makedirs(saved_model_dir, exist_ok=True)
-os.makedirs(tfjs_model_dir, exist_ok=True)
 
-try:
-    # 1. 載入 YOLO 模型
-    print("Loading YOLO model...")
-    model = YOLO(yolo_model_path)
+def export_to_tf(model, saved_model_dir, imgsz=640):
+    """
+    匯出為 TensorFlow SavedModel
+    """
+    print(f"匯出到 SavedModel：{saved_model_dir}")
+    model.export(format='tf', imgsz=imgsz)
+    print("SavedModel 匯出完成。")
 
-    # 2. 匯出模型為 TensorFlow SavedModel 格式
-    print("Exporting to TensorFlow SavedModel format...")
-    model.export(format="tf", imgsz=640)  # imgsz 根據你的模型設定調整，通常是 640x640
-    print(f"TensorFlow SavedModel exported to: {saved_model_dir}")
 
-    # 3. 轉換 SavedModel 為 TFLite 格式
-    print("Converting to TFLite format...")
-    # 加載 TensorFlow SavedModel
+def convert_to_tflite(saved_model_dir, tflite_path):
+    """
+    將 SavedModel 轉成 TFLite 並存檔
+    """
+    print("開始轉換成 TFLite 格式...")
     converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
     tflite_model = converter.convert()
-
-    # 儲存 TFLite 模型
-    with open(tflite_model_path, "wb") as f:
+    with open(tflite_path, 'wb') as f:
         f.write(tflite_model)
-    print(f"TFLite model saved at: {tflite_model_path}")
+    print(f"TFLite 模型已儲存：{tflite_path}")
 
-    # 4. 轉換 SavedModel 為 TensorFlow.js 格式
-    print("Converting to TensorFlow.js format...")
-    tfjs.converters.convert_tf_saved_model(saved_model_dir, tfjs_model_dir)
-    print(f"TensorFlow.js model saved at: {tfjs_model_dir}")
 
-    print("Model conversion complete!")
+def convert_to_tfjs(saved_model_dir, tfjs_dir):
+    """
+    將 SavedModel 轉成 TensorFlow.js 格式
+    """
+    print("開始轉換成 TF.js 格式...")
+    tfjs.converters.convert_tf_saved_model(saved_model_dir, tfjs_dir)
+    print(f"TF.js 模型已儲存：{tfjs_dir}")
 
-except Exception as e:
-    print(f"An error occurred: {e}")
+
+def main():
+    # 路徑設定
+    yolo_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\best.pt"
+    saved_dir = ensure_dir(r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\saved_model")
+    tflite_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\model.tflite"
+    tfjs_dir = ensure_dir(r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\tfjs_model")
+
+    # 1. 載入模型
+    model = load_yolo(yolo_path)
+    # 2. 匯出 SavedModel
+    export_to_tf(model, saved_dir)
+    # 3. 轉 TFLite
+    convert_to_tflite(saved_dir, tflite_path)
+    # 4. 轉 TF.js
+    convert_to_tfjs(saved_dir, tfjs_dir)
+
+    print("所有格式轉換完成！")
+
+if __name__ == '__main__':
+    main()

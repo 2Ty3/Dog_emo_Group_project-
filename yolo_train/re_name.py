@@ -1,6 +1,6 @@
 import os
 
-# 若使用 tkinter 選擇資料夾 (可改用 input())
+# 嘗試用 tkinter 讓使用者選資料夾，沒裝就改用 input()
 try:
     import tkinter as tk
     from tkinter import filedialog
@@ -8,110 +8,113 @@ try:
 except ImportError:
     USE_TK = False
 
-def select_folder_with_tk(title="選擇資料夾"):
-    """使用 tkinter 跳出對話框讓使用者選擇資料夾。"""
+
+def select_folder():
+    """
+    用對話框選資料夾，回傳路徑，沒選就回空字串
+    """
+    if not USE_TK:
+        return ''
     root = tk.Tk()
     root.withdraw()
-    folder_selected = filedialog.askdirectory(title=title)
+    folder = filedialog.askdirectory(title="請選擇要改名的資料夾")
     root.destroy()
-    return folder_selected
+    return folder
 
-def main():
-    # ---------------------------------------------------------
-    # 1. 使用者指定「要改名的資料夾」
-    # ---------------------------------------------------------
+
+def get_target_dir():
+    """
+    取得要改名的資料夾路徑
+    """
     if USE_TK:
-        target_dir = select_folder_with_tk("請選擇要改名的資料夾")
-        if not target_dir:
-            print("未選擇資料夾，程式結束。")
-            return
+        path = select_folder()
+        if not path:
+            print("你沒選資料夾，程式先結束。")
+            exit()
     else:
-        target_dir = input("請輸入要改名的資料夾路徑：").strip()
-        if not os.path.isdir(target_dir):
-            print(f"指定資料夾不存在：{target_dir}")
-            return
+        path = input("請輸入要改名的資料夾路徑：").strip()
+        if not os.path.isdir(path):
+            print(f"指定的資料夾不存在：{path}")
+            exit()
+    return path
 
-    # ---------------------------------------------------------
-    # 2. 輸入命名前綴(prefix)、編號起始值(start)、結束值(end)
-    # ---------------------------------------------------------
-    prefix = input("請輸入命名前綴 (例如 happy, angry, relaxed... )：").strip()
+
+def get_prefix_and_range():
+    """
+    讓使用者輸入前綴、起始編號和結束編號，並做基本檢查
+    """
+    prefix = input("輸入命名前綴 (ex: happy, angry)：").strip()
     if not prefix:
-        print("未輸入前綴，程式結束。")
-        return
+        print("要有前綴啦，程式結束。")
+        exit()
 
     try:
-        start_str = input("請輸入編號起始值 (例如 1)：").strip()
-        end_str   = input("請輸入編號結束值 (例如 250)：").strip()
-        start = int(start_str)
-        end_  = int(end_str)
+        start = int(input("編號從哪開始？(整數)：").strip())
+        end_ = int(input("編號到哪？(整數)：").strip())
         if start < 1 or end_ < start:
-            print("範圍不合理，程式結束。")
-            return
+            raise ValueError
     except ValueError:
-        print("起始值或結束值必須為整數，程式結束。")
-        return
+        print("編號範圍有問題，程式結束。")
+        exit()
 
-    print(f"\n您選擇的資料夾：{target_dir}")
-    print(f"前綴：{prefix}")
-    print(f"編號範圍：{start} ~ {end_}")
-    print("開始檢查並改名...\n")
+    return prefix, start, end_
 
-    # ---------------------------------------------------------
-    # 3. 取得資料夾內所有檔案，並排序
-    # ---------------------------------------------------------
-    files = [f for f in os.listdir(target_dir) if f.lower().endswith(('.jpg', '.txt'))]
-    files.sort()  # 預設字母排序
 
+def rename_files(target_dir, prefix, start, end_):
+    """
+    針對指定範圍的檔案做批次改名
+    """
+    # 抓 .jpg 跟 .txt，排好序
+    files = sorted(
+        f for f in os.listdir(target_dir)
+        if f.lower().endswith(('.jpg', '.txt'))
+    )
     if not files:
-        print("資料夾中沒有符合 (.jpg, .txt) 的檔案可改名。")
-        return
+        print("這資料夾裡面沒 jpg 或 txt 檔，沒東西可改名。")
+        return 0, 0, end_ - start + 1
 
-    # ---------------------------------------------------------
-    # 4. 檢查並改名
-    # ---------------------------------------------------------
-    current_num = start
-    renamed_count = 0
-    skipped_count = 0
+    cur = start
+    renamed = 0
+    skipped = 0
 
-    for file in files:
-        old_path = os.path.join(target_dir, file)
-        name, ext = os.path.splitext(file)
-
-        # 預計正確的檔名
-        expected_name = f"{prefix}_{current_num:04d}{ext.lower()}"
-        expected_path = os.path.join(target_dir, expected_name)
-
-        if file == expected_name:
-            # 如果檔案名稱已正確，跳過
-            print(f"[跳過] 檔案名稱正確：{file}")
-            skipped_count += 1
-        else:
-            # 如果名稱不正確，進行改名
-            os.rename(old_path, expected_path)
-            print(f"[改名] {file} -> {expected_name}")
-            renamed_count += 1
-
-        # 更新編號
-        current_num += 1
-
-        # 如果超出目標範圍，停止處理
-        if current_num > end_:
-            print("已達設定的結束範圍，停止改名。")
+    for fname in files:
+        if cur > end_:
+            print("超出設定範圍，停止改名。")
             break
 
-    # ---------------------------------------------------------
-    # 5. 結果總結
-    # ---------------------------------------------------------
-    print("\n----------------- 改名結果 -----------------")
-    print(f"成功改名：{renamed_count} 個")
-    print(f"跳過：{skipped_count} 個 (檔案名稱已正確)")
-    if current_num <= end_:
-        not_used = (end_ - current_num + 1)
-        print(f"尚有 {not_used} 個編號未使用 (檔案數不足)。")
-    else:
-        print("所有編號已用完。")
+        old = os.path.join(target_dir, fname)
+        name, ext = os.path.splitext(fname)
+        new_fname = f"{prefix}_{cur:04d}{ext.lower()}"
+        new = os.path.join(target_dir, new_fname)
 
-    print("處理完成！")
+        if fname == new_fname:
+            print(f"[跳過] 已經是正確名稱：{fname}")
+            skipped += 1
+        else:
+            os.rename(old, new)
+            print(f"[改名] {fname} -> {new_fname}")
+            renamed += 1
 
-if __name__ == "__main__":
+        cur += 1
+
+    unused = max(0, end_ - cur + 1)
+    return renamed, skipped, unused
+
+
+def main():
+    target_dir = get_target_dir()
+    prefix, start, end_ = get_prefix_and_range()
+
+    print(f"目標資料夾：{target_dir}")
+    print(f"前綴：{prefix}，編號範圍：{start} ~ {end_}\n")
+
+    renamed, skipped, unused = rename_files(target_dir, prefix, start, end_)
+
+    print("\n===== 改名結果 =====")
+    print(f"成功改名：{renamed} 個")
+    print(f"跳過：{skipped} 個 (已經符合命名)")
+    print(f"未使用編號：{unused} 個")
+    print("全部結束！")
+
+if __name__ == '__main__':
     main()

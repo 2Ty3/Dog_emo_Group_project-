@@ -1,72 +1,93 @@
-import torch
-import cv2
 import os
+import cv2
+import torch
 from ultralytics import YOLO
 
-# ------------------------------------------------------------
-# 1. 檢查是否有 GPU，可用時指定 device='cuda'；否則使用 'cpu'
-# ------------------------------------------------------------
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(f"目前使用裝置：{device}")
+def init_device():
+    """
+    檢查有沒有 GPU，可用就用 cuda，沒有就 fallback 到 cpu
+    """
+    dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"目前裝置：{dev}")
+    return dev
 
-# ------------------------------------------------------------
-# 2. 指定權重檔與待辨識圖片路徑
-# ------------------------------------------------------------
-model_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\best.pt"
-source_image = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\data\some_dog_image.jpg"
-output_folder = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\data\Dog_classified"
 
-os.makedirs(os.path.join(output_folder, 'angry'), exist_ok=True)
-os.makedirs(os.path.join(output_folder, 'happy'), exist_ok=True)
-os.makedirs(os.path.join(output_folder, 'other'), exist_ok=True)
+def setup_output_dirs(base_dir, categories):
+    """
+    建立分類後圖片要存放的資料夾結構：angry, happy, other
+    """
+    dirs = {}
+    for cat in categories:
+        path = os.path.join(base_dir, cat)
+        os.makedirs(path, exist_ok=True)
+        dirs[cat] = path
+    return dirs
 
-# ------------------------------------------------------------
-# 3. 載入 YOLO 模型並移動到對應裝置 (GPU or CPU)
-# ------------------------------------------------------------
-model = YOLO(model_path)
-# 若想手動指定 device，可再呼叫 model.model.to(device)；不過 ultralytics 也支援在 predict() 時指定 device
 
-# ------------------------------------------------------------
-# 4. 對單一圖片進行推論 (使用 GPU 加速)
-# ------------------------------------------------------------
-results = model.predict(
-    source=source_image,  # 單一圖片
-    conf=0.5,             # 信心閾值
-    imgsz=640,            # 推論時輸入大小
-    device=device,        # 使用 GPU (cuda) 或 CPU
-    save=False
-)
+def load_model(model_path):
+    """
+    載入 Ultralytics YOLO 模型
+    """
+    return YOLO(model_path)
 
-# 讀取原始圖片，後續用來繪製標註或直接保存
-original_img = cv2.imread(source_image)
 
-# ------------------------------------------------------------
-# 5. 判斷推論結果，只顯示類別名稱 (不顯示信心指數)
-# ------------------------------------------------------------
-if len(results[0].boxes) > 0:
-    # 取第一個偵測框
-    first_box = results[0].boxes[0]
-    cls = int(first_box.cls[0])
-    class_name = model.names[cls]  # e.g. "angry", "happy", etc.
+def classify_image(model, image_path, output_dirs, device, conf=0.5, imgsz=640):
+    """
+    對單張圖片做推論，再依分類結果存檔到對應資料夾
+    """
+    # 讀圖、推論
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"讀圖失敗：{image_path}")
+        return
 
-    # 繪製標註圖 (若不想顯示信心度，也可以自行用 cv2.rectangle + putText)
-    annotated_img = results[0].plot()
+    results = model.predict(
+        source=img,
+        conf=conf,
+        imgsz=imgsz,
+        device=device,
+        save=False
+    )
 
-    # 根據類別名稱決定輸出資料夾
-    if class_name == "angry":
-        save_path = os.path.join(output_folder, 'angry', os.path.basename(source_image))
-    elif class_name == "happy":
-        save_path = os.path.join(output_folder, 'happy', os.path.basename(source_image))
+    # 沒偵測到就放 other
+    if not results[0].boxes:
+        target_cat = 'other'
+        out_img = img
+        print("偵測不到目標，歸類為 other")
     else:
-        save_path = os.path.join(output_folder, 'other', os.path.basename(source_image))
+        # 取第一個框的類別
+        cls_id = int(results[0].boxes[0].cls[0])
+        cat_name = model.names.get(cls_id, 'other')
+        target_cat = cat_name if cat_name in output_dirs else 'other'
+        # 繪製標註
+        out_img = results[0].plot()
+        print(f"判斷結果：{target_cat}")
 
-    # 儲存繪製後的圖片
-    cv2.imwrite(save_path, annotated_img)
-    print(f"圖片判斷結果：{class_name}，已保存至：{save_path}")
+    # 儲存圖片
+    fname = os.path.basename(image_path)
+    save_path = os.path.join(output_dirs[target_cat], fname)
+    cv2.imwrite(save_path, out_img)
+    print(f"已存到：{save_path}\n")
 
-else:
-    # 無法偵測到任何目標，直接歸類為 other
-    save_path = os.path.join(output_folder, 'other', os.path.basename(source_image))
-    cv2.imwrite(save_path, original_img)
-    print("無法辨識到任何狗的情緒，已歸類為 other")
-    print(f"已保存原圖至：{save_path}")
+
+def main():
+    # 1. 初始化環境
+    device = init_device()
+
+    # 2. 設定路徑
+    model_path = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\best.pt"
+    source_image = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\data\some_dog_image.jpg"
+    output_base = r"C:\Users\coffeetea\PycharmProjects\ptoc2.5.1\data\Dog_classified"
+    categories = ['angry', 'happy', 'other']
+    output_dirs = setup_output_dirs(output_base, categories)
+
+    # 3. 載入模型
+    model = load_model(model_path)
+
+    # 4. 推論並存檔
+    classify_image(model, source_image, output_dirs, device)
+
+    print("全部處理完成！")
+
+if __name__ == '__main__':
+    main()

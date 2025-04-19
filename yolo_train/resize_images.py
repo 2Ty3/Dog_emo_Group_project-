@@ -3,35 +3,48 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image
 
-
 def select_folder():
-    """使用者介面選取資料夾，並回傳其路徑。"""
+    """
+    跳出視窗讓使用者選資料夾，回傳路徑
+    """
     root = tk.Tk()
-    root.withdraw()  # 隱藏主視窗
-    folder_path = filedialog.askdirectory(title="選擇要縮放圖片的資料夾")
-    return folder_path
+    root.withdraw()  # 收起主視窗
+    path = filedialog.askdirectory(title="選擇要縮放圖片的資料夾")
+    root.destroy()
+    return path
 
 
-def resize_images_in_folder(folder_path, size=(640, 640)):
-    """將資料夾中的所有圖片縮放成指定大小 (預設 640x640)。"""
-    valid_extensions = ('.jpg', '.jpeg', '.png')
+def resize_images(folder_path, size=(640, 640)):
+    """
+    把指定資料夾裡的所有 jpg/jpeg/png 影像都縮成給定大小，並蓋掉原圖
+    """
+    exts = ('.jpg', '.jpeg', '.png')
+    files = sorted(f for f in os.listdir(folder_path) if f.lower().endswith(exts))
+    if not files:
+        print("資料夾裡沒有符合的影像，請確認路徑和副檔名。")
+        return
 
-    for filename in os.listdir(folder_path):
-        if filename.lower().endswith(valid_extensions):
-            file_path = os.path.join(folder_path, filename)
+    for fname in files:
+        path = os.path.join(folder_path, fname)
+        try:
+            with Image.open(path) as img:
+                img = img.resize(size, Image.Resampling.LANCZOS)
+                img.save(path)
+            print(f"{fname} → {size[0]}x{size[1]} 完成")
+        except Exception as e:
+            print(f"縮放失敗：{fname}，原因：{e}")
 
-            with Image.open(file_path) as img:
-                resized_img = img.resize(size)
-                # 覆蓋原本圖片（若不想覆蓋可換路徑）
-                resized_img.save(file_path)
 
-            print(f"{filename} 已縮放成 {size[0]}x{size[1]}")
+def main():
+    # 取得資料夾路徑
+    folder = select_folder()
+    if not folder:
+        print("沒有選資料夾，程式先結束。")
+        return
 
+    print(f"開始縮放資料夾：{folder}")
+    resize_images(folder, size=(640, 640))
+    print("圖片縮放搞定！")
 
-if __name__ == "__main__":
-    folder_path = select_folder()
-    if folder_path:
-        resize_images_in_folder(folder_path, size=(640, 640))
-        print("圖片縮放完成！")
-    else:
-        print("未選取任何資料夾。")
+if __name__ == '__main__':
+    main()
